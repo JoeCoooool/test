@@ -17,6 +17,7 @@ blueprint:
 
     display_size:
       name: Displaygröße
+      description: Welche Displaygröße wird verwendet?
       default: "2.9"
       selector:
         select:
@@ -27,6 +28,7 @@ blueprint:
               value: "2.9"
             - label: 3,5 Zoll
               value: "3.5"
+
 
     display_title:
       name: Display Titel
