@@ -1,0 +1,207 @@
+blueprint:
+  name: E-Paper Display - 4-Quadranten-Layout (v1.2.0)
+  description: >
+    Zeigt vier Sensoren in einem 4-Quadranten-Layout auf einem E-Paper Display an.
+    Jeder Sensor kann eine eigene Einheit haben (z.B. °C, bar, %).
+  domain: automation
+  author: meddatzk + ChatGPT
+  source_url: https://github.com/meddatzk/epaper-4quadrant-blueprint
+  homeassistant:
+    min_version: 2023.8.0
+
+  input:
+    epaper_device:
+      name: E-Paper Display
+      selector:
+        device:
+          integration: open_epaper_link
+
+    display_title:
+      name: Display Titel
+      default: "Sensor Übersicht"
+      selector:
+        text:
+
+    ttl:
+      name: Time to Live (Sekunden)
+      default: 600
+      selector:
+        number:
+          min: 60
+          max: 3600
+          step: 60
+          unit_of_measurement: "s"
+
+    # ---------------- SENSOR 1 ----------------
+    sensor_1:
+      name: Sensor 1 (oben links)
+      selector:
+        entity:
+          domain: sensor
+    sensor_1_label:
+      default: "Sensor 1"
+      selector: { text: }
+    sensor_1_icon:
+      default: mdi:sprout
+      selector: { icon: }
+    sensor_1_unit:
+      name: Einheit Sensor 1
+      default: "°C"
+      selector: { text: }
+
+    # ---------------- SENSOR 2 ----------------
+    sensor_2:
+      name: Sensor 2 (oben rechts)
+      selector:
+        entity:
+          domain: sensor
+    sensor_2_label:
+      default: "Sensor 2"
+      selector: { text: }
+    sensor_2_icon:
+      default: mdi:sprout
+      selector: { icon: }
+    sensor_2_unit:
+      name: Einheit Sensor 2
+      default: "°C"
+      selector: { text: }
+
+    # ---------------- SENSOR 3 ----------------
+    sensor_3:
+      name: Sensor 3 (unten links)
+      selector:
+        entity:
+          domain: sensor
+    sensor_3_label:
+      default: "Sensor 3"
+      selector: { text: }
+    sensor_3_icon:
+      default: mdi:sprout
+      selector: { icon: }
+    sensor_3_unit:
+      name: Einheit Sensor 3
+      default: "°C"
+      selector: { text: }
+
+    # ---------------- SENSOR 4 ----------------
+    sensor_4:
+      name: Sensor 4 (unten rechts)
+      selector:
+        entity:
+          domain: sensor
+    sensor_4_label:
+      default: "Sensor 4"
+      selector: { text: }
+    sensor_4_icon:
+      default: mdi:sprout
+      selector: { icon: }
+    sensor_4_unit:
+      name: Einheit Sensor 4
+      default: "bar"
+      selector: { text: }
+
+    threshold_low:
+      name: Unterer Schwellenwert
+      default: 30
+      selector:
+        number:
+          min: 0
+          max: 100
+
+    normal_color:
+      default: black
+      selector:
+        select:
+          options: [black, red, white]
+
+    alert_color:
+      default: red
+      selector:
+        select:
+          options: [red, black, white]
+
+    divider_color:
+      default: red
+      selector:
+        select:
+          options: [red, black, white]
+
+variables:
+  s1: !input sensor_1
+  s2: !input sensor_2
+  s3: !input sensor_3
+  s4: !input sensor_4
+  u1: !input sensor_1_unit
+  u2: !input sensor_2_unit
+  u3: !input sensor_3_unit
+  u4: !input sensor_4_unit
+  threshold: !input threshold_low
+  normal_col: !input normal_color
+  alert_col: !input alert_color
+
+trigger:
+  - platform: state
+    entity_id:
+      - !input sensor_1
+      - !input sensor_2
+      - !input sensor_3
+      - !input sensor_4
+
+action:
+  - action: open_epaper_link.drawcustom
+    data:
+      background: white
+      ttl: !input ttl
+      payload:
+        - type: text
+          value: !input display_title
+          x: 43
+          y: 5
+          size: 14
+          color: !input normal_color
+
+        - type: line
+          x_start: 148
+          y_start: 20
+          x_end: 148
+          y_end: 142
+          color: !input divider_color
+        - type: line
+          x_start: 10
+          y_start: 76
+          x_end: 286
+          y_end: 76
+          color: !input divider_color
+
+        # Q1
+        - type: text
+          value: "{{ states(s1) | float | round(1) }} {{ u1 }}"
+          x: 50
+          y: 50
+          size: 15
+
+        # Q2
+        - type: text
+          value: "{{ states(s2) | float | round(1) }} {{ u2 }}"
+          x: 200
+          y: 50
+          size: 15
+
+        # Q3
+        - type: text
+          value: "{{ states(s3) | float | round(1) }} {{ u3 }}"
+          x: 50
+          y: 115
+          size: 15
+
+        # Q4
+        - type: text
+          value: "{{ states(s4) | float | round(2) }} {{ u4 }}"
+          x: 200
+          y: 115
+          size: 15
+
+    target:
+      device_id: !input epaper_device
+
+mode: single
