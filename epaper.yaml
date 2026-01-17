@@ -1,8 +1,8 @@
 blueprint:
-  name: E-Paper Display - 4-Quadranten-Layout (v1.2.1)
+  name: E-Paper Display – 4 Quadranten (responsive, multi-size)
   description: >
-    Zeigt vier Sensoren in einem 4-Quadranten-Layout auf einem E-Paper Display an.
-    Jeder Sensor kann eine eigene Einheit haben (z.B. °C, bar, %).
+    4-Quadranten-Layout für E-Paper Displays (2.66", 2.9", 3.5", 4.2")
+    Automatisch skaliert je nach Displaygröße.
   domain: automation
   author: meddatzk + ChatGPT
   source_url: https://github.com/meddatzk/epaper-4quadrant-blueprint
@@ -12,10 +12,20 @@ blueprint:
   input:
     epaper_device:
       name: E-Paper Display
-      description: Zielgerät
       selector:
         device:
           integration: open_epaper_link
+
+    display_type:
+      name: Display Größe
+      default: "2.9"
+      selector:
+        select:
+          options:
+            - "2.66"
+            - "2.9"
+            - "3.5"
+            - "4.2"
 
     display_title:
       name: Display Titel
@@ -31,146 +41,154 @@ blueprint:
           min: 60
           max: 3600
           step: 60
-          unit_of_measurement: "s"
+          unit_of_measurement: s
 
-    # -------- SENSOR 1 --------
+    # -------- SENSOREN --------
     sensor_1:
       name: Sensor 1 (oben links)
       selector:
         entity:
           domain: sensor
     sensor_1_label:
-      name: Beschriftung Sensor 1
       default: "Sensor 1"
       selector:
         text:
     sensor_1_icon:
-      name: Icon Sensor 1
       default: mdi:thermometer
       selector:
         icon:
     sensor_1_unit:
-      name: Einheit Sensor 1
       default: "°C"
       selector:
         text:
 
-    # -------- SENSOR 2 --------
     sensor_2:
       name: Sensor 2 (oben rechts)
       selector:
         entity:
           domain: sensor
     sensor_2_label:
-      name: Beschriftung Sensor 2
       default: "Sensor 2"
       selector:
         text:
     sensor_2_icon:
-      name: Icon Sensor 2
       default: mdi:thermometer
       selector:
         icon:
     sensor_2_unit:
-      name: Einheit Sensor 2
       default: "°C"
       selector:
         text:
 
-    # -------- SENSOR 3 --------
     sensor_3:
       name: Sensor 3 (unten links)
       selector:
         entity:
           domain: sensor
     sensor_3_label:
-      name: Beschriftung Sensor 3
       default: "Sensor 3"
       selector:
         text:
     sensor_3_icon:
-      name: Icon Sensor 3
       default: mdi:thermometer
       selector:
         icon:
     sensor_3_unit:
-      name: Einheit Sensor 3
       default: "°C"
       selector:
         text:
 
-    # -------- SENSOR 4 --------
     sensor_4:
       name: Sensor 4 (unten rechts)
       selector:
         entity:
           domain: sensor
     sensor_4_label:
-      name: Beschriftung Sensor 4
-      default: "Druck"
+      default: "Sensor 4"
       selector:
         text:
     sensor_4_icon:
-      name: Icon Sensor 4
-      default: mdi:car-brake-low-pressure
+      default: mdi:gauge
       selector:
         icon:
     sensor_4_unit:
-      name: Einheit Sensor 4
-      default: "bar"
+      default: ""
       selector:
         text:
 
     threshold_low:
       name: Unterer Schwellenwert
-      default: 30
+      default: 0
       selector:
         number:
-          min: 0
-          max: 100
+          min: -100
+          max: 1000
 
     normal_color:
-      name: Normale Farbe
       default: black
       selector:
         select:
-          options:
-            - black
-            - red
-            - white
+          options: [black, red, white]
 
     alert_color:
-      name: Alarm Farbe
       default: red
       selector:
         select:
-          options:
-            - red
-            - black
-            - white
+          options: [red, black, white]
 
     divider_color:
-      name: Trennlinien Farbe
-      default: red
+      default: black
       selector:
         select:
-          options:
-            - red
-            - black
-            - white
+          options: [black, red, white]
 
 variables:
   s1: !input sensor_1
   s2: !input sensor_2
   s3: !input sensor_3
   s4: !input sensor_4
+
   u1: !input sensor_1_unit
   u2: !input sensor_2_unit
   u3: !input sensor_3_unit
   u4: !input sensor_4_unit
+
   threshold: !input threshold_low
   normal_col: !input normal_color
   alert_col: !input alert_color
+  display: !input display_type
+
+  w: >
+    {% if display == '2.66' %}296
+    {% elif display == '2.9' %}296
+    {% elif display == '3.5' %}384
+    {% elif display == '4.2' %}400
+    {% endif %}
+
+  h: >
+    {% if display == '2.66' %}152
+    {% elif display == '2.9' %}128
+    {% elif display == '3.5' %}184
+    {% elif display == '4.2' %}300
+    {% endif %}
+
+  mid_x: "{{ (w / 2) | int }}"
+  mid_y: "{{ (h / 2) | int }}"
+  margin: "{{ (h / 18) | int }}"
+
+  icon_size: "{{ (w / 6) | int }}"
+  title_size: "{{ (h / 10) | int }}"
+  label_size: "{{ (h / 14) | int }}"
+  value_size: "{{ (h / 8) | int }}"
+
+  q1_x: "{{ margin }}"
+  q1_y: "{{ margin + title_size }}"
+  q2_x: "{{ mid_x + margin }}"
+  q2_y: "{{ margin + title_size }}"
+  q3_x: "{{ margin }}"
+  q3_y: "{{ mid_y + margin }}"
+  q4_x: "{{ mid_x + margin }}"
+  q4_y: "{{ mid_y + margin }}"
 
 trigger:
   - platform: state
@@ -182,111 +200,110 @@ trigger:
 
 action:
   - service: open_epaper_link.drawcustom
+    target:
+      device_id: !input epaper_device
     data:
-      rotate: 0
-      dither: "0"
-      dry-run: false
       background: white
+      rotate: 0
       ttl: !input ttl
       payload:
 
         - type: text
           value: !input display_title
-          x: 43
+          x: "{{ mid_x }}"
           y: 5
-          size: 14
-          color: !input normal_color
+          size: "{{ title_size }}"
+          align: center
+          color: "{{ normal_col }}"
 
         - type: line
-          x_start: 148
-          y_start: 20
-          x_end: 148
-          y_end: 142
+          x_start: "{{ mid_x }}"
+          y_start: "{{ margin }}"
+          x_end: "{{ mid_x }}"
+          y_end: "{{ h - margin }}"
           color: !input divider_color
+
         - type: line
-          x_start: 10
-          y_start: 76
-          x_end: 286
-          y_end: 76
+          x_start: "{{ margin }}"
+          y_start: "{{ mid_y }}"
+          x_end: "{{ w - margin }}"
+          y_end: "{{ mid_y }}"
           color: !input divider_color
 
         # Q1
         - type: icon
           value: !input sensor_1_icon
-          x: 5
-          y: 20
-          size: 45
+          x: "{{ q1_x }}"
+          y: "{{ q1_y }}"
+          size: "{{ icon_size }}"
           color: "{{ alert_col if states(s1)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_1_label
-          x: 50
-          y: 30
-          size: 13
+          x: "{{ q1_x + icon_size + 6 }}"
+          y: "{{ q1_y }}"
+          size: "{{ label_size }}"
         - type: text
           value: "{{ states(s1)|float|round(1) }} {{ u1 }}"
-          x: 50
-          y: 50
-          size: 15
+          x: "{{ q1_x + icon_size + 6 }}"
+          y: "{{ q1_y + label_size + 8 }}"
+          size: "{{ value_size }}"
           color: "{{ alert_col if states(s1)|float(0) < threshold else normal_col }}"
 
         # Q2
         - type: icon
           value: !input sensor_2_icon
-          x: 155
-          y: 20
-          size: 45
+          x: "{{ q2_x }}"
+          y: "{{ q2_y }}"
+          size: "{{ icon_size }}"
           color: "{{ alert_col if states(s2)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_2_label
-          x: 200
-          y: 30
-          size: 13
+          x: "{{ q2_x + icon_size + 6 }}"
+          y: "{{ q2_y }}"
+          size: "{{ label_size }}"
         - type: text
           value: "{{ states(s2)|float|round(1) }} {{ u2 }}"
-          x: 200
-          y: 50
-          size: 15
+          x: "{{ q2_x + icon_size + 6 }}"
+          y: "{{ q2_y + label_size + 8 }}"
+          size: "{{ value_size }}"
           color: "{{ alert_col if states(s2)|float(0) < threshold else normal_col }}"
 
         # Q3
         - type: icon
           value: !input sensor_3_icon
-          x: 5
-          y: 85
-          size: 45
+          x: "{{ q3_x }}"
+          y: "{{ q3_y }}"
+          size: "{{ icon_size }}"
           color: "{{ alert_col if states(s3)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_3_label
-          x: 50
-          y: 95
-          size: 13
+          x: "{{ q3_x + icon_size + 6 }}"
+          y: "{{ q3_y }}"
+          size: "{{ label_size }}"
         - type: text
           value: "{{ states(s3)|float|round(1) }} {{ u3 }}"
-          x: 50
-          y: 115
-          size: 15
+          x: "{{ q3_x + icon_size + 6 }}"
+          y: "{{ q3_y + label_size + 8 }}"
+          size: "{{ value_size }}"
           color: "{{ alert_col if states(s3)|float(0) < threshold else normal_col }}"
 
         # Q4
         - type: icon
           value: !input sensor_4_icon
-          x: 155
-          y: 85
-          size: 45
+          x: "{{ q4_x }}"
+          y: "{{ q4_y }}"
+          size: "{{ icon_size }}"
           color: "{{ alert_col if states(s4)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_4_label
-          x: 200
-          y: 95
-          size: 13
+          x: "{{ q4_x + icon_size + 6 }}"
+          y: "{{ q4_y }}"
+          size: "{{ label_size }}"
         - type: text
           value: "{{ states(s4)|float|round(2) }} {{ u4 }}"
-          x: 200
-          y: 115
-          size: 15
+          x: "{{ q4_x + icon_size + 6 }}"
+          y: "{{ q4_y + label_size + 8 }}"
+          size: "{{ value_size }}"
           color: "{{ alert_col if states(s4)|float(0) < threshold else normal_col }}"
-
-    target:
-      device_id: !input epaper_device
 
 mode: single
