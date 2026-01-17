@@ -1,14 +1,14 @@
 blueprint:
-  name: E-Paper Display – 4 Quadranten mit Displaygröße
+  name: E-Paper Display – 4 Quadranten (Displaygröße wählbar)
   description: >
-    4-Quadranten-Layout für E-Paper Displays mit auswählbarer Displaygröße
-    (2,66" / 2,9" / 3,5") und individueller Einheit pro Sensor.
+    Zeigt vier Sensoren in einem 4-Quadranten-Layout auf einem E-Paper Display an.
+    Unterstützt 2,66" / 2,9" / 3,5", eigene Einheit pro Sensor.
   domain: automation
   homeassistant:
     min_version: 2023.8.0
 
   input:
-    # ---------- DISPLAY ----------
+
     display_size:
       name: Displaygröße
       description: Welche Displaygröße wird verwendet?
@@ -23,107 +23,126 @@ blueprint:
             - label: 3,5 Zoll
               value: "3.5"
 
-    display_title:
-      name: Display Titel
-      default: "Sensor Übersicht"
-      selector:
-        text:
-
     epaper_device:
       name: E-Paper Display
-      description: Zielgerät
+      description: Zielgerät (open_epaper_link)
       selector:
         device:
           integration: open_epaper_link
 
+    display_title:
+      name: Display Titel
+      description: Überschrift oben
+      default: "Sensor Übersicht"
+      selector:
+        text:
+
     ttl:
-      name: TTL (Sekunden)
+      name: Time To Live
+      description: Gültigkeit der Anzeige in Sekunden
       default: 600
       selector:
         number:
           min: 60
           max: 3600
           step: 60
-          unit_of_measurement: "s"
+          unit_of_measurement: s
 
-    # ---------- SENSOR 1 ----------
+    # -------- SENSOR 1 --------
     sensor_1:
-      name: Sensor 1 (oben links)
+      name: Sensor 1
+      description: Oben links
       selector:
         entity:
           domain: sensor
     sensor_1_label:
+      name: Sensor 1 – Text
       default: "Sensor 1"
       selector:
         text:
     sensor_1_icon:
+      name: Sensor 1 – Icon
       default: mdi:thermometer
       selector:
         icon:
     sensor_1_unit:
+      name: Sensor 1 – Einheit
       default: "°C"
       selector:
         text:
 
-    # ---------- SENSOR 2 ----------
+    # -------- SENSOR 2 --------
     sensor_2:
-      name: Sensor 2 (oben rechts)
+      name: Sensor 2
+      description: Oben rechts
       selector:
         entity:
           domain: sensor
     sensor_2_label:
+      name: Sensor 2 – Text
       default: "Sensor 2"
       selector:
         text:
     sensor_2_icon:
+      name: Sensor 2 – Icon
       default: mdi:thermometer
       selector:
         icon:
     sensor_2_unit:
+      name: Sensor 2 – Einheit
       default: "°C"
       selector:
         text:
 
-    # ---------- SENSOR 3 ----------
+    # -------- SENSOR 3 --------
     sensor_3:
-      name: Sensor 3 (unten links)
+      name: Sensor 3
+      description: Unten links
       selector:
         entity:
           domain: sensor
     sensor_3_label:
+      name: Sensor 3 – Text
       default: "Sensor 3"
       selector:
         text:
     sensor_3_icon:
+      name: Sensor 3 – Icon
       default: mdi:thermometer
       selector:
         icon:
     sensor_3_unit:
+      name: Sensor 3 – Einheit
       default: "°C"
       selector:
         text:
 
-    # ---------- SENSOR 4 ----------
+    # -------- SENSOR 4 --------
     sensor_4:
-      name: Sensor 4 (unten rechts)
+      name: Sensor 4
+      description: Unten rechts (z. B. Druck)
       selector:
         entity:
           domain: sensor
     sensor_4_label:
+      name: Sensor 4 – Text
       default: "Druck"
       selector:
         text:
     sensor_4_icon:
+      name: Sensor 4 – Icon
       default: mdi:car-brake-low-pressure
       selector:
         icon:
     sensor_4_unit:
+      name: Sensor 4 – Einheit
       default: "bar"
       selector:
         text:
 
     threshold_low:
       name: Unterer Schwellenwert
+      description: Unter diesem Wert wird rot dargestellt
       default: 30
       selector:
         number:
@@ -131,6 +150,7 @@ blueprint:
           max: 100
 
     normal_color:
+      name: Normale Farbe
       default: black
       selector:
         select:
@@ -140,6 +160,7 @@ blueprint:
             - white
 
     alert_color:
+      name: Alarmfarbe
       default: red
       selector:
         select:
@@ -149,6 +170,7 @@ blueprint:
             - white
 
     divider_color:
+      name: Trennlinienfarbe
       default: red
       selector:
         select:
@@ -158,6 +180,11 @@ blueprint:
             - white
 
 variables:
+  size: !input display_size
+  threshold: !input threshold_low
+  normal_col: !input normal_color
+  alert_col: !input alert_color
+
   s1: !input sensor_1
   s2: !input sensor_2
   s3: !input sensor_3
@@ -166,18 +193,14 @@ variables:
   u2: !input sensor_2_unit
   u3: !input sensor_3_unit
   u4: !input sensor_4_unit
-  threshold: !input threshold_low
-  normal_col: !input normal_color
-  alert_col: !input alert_color
-  size: !input display_size
 
   layout: >
     {% if size == '2.66' %}
-      {{ dict(w=264, h=176, icon=38, val=14, label=12, title_x=40, mid_x=132, mid_y=88) }}
+      {{ dict(w=264, h=176, mid_x=132, mid_y=88, icon=38, label=12, value=14, title_x=40) }}
     {% elif size == '3.5' %}
-      {{ dict(w=384, h=240, icon=55, val=18, label=15, title_x=95, mid_x=192, mid_y=120) }}
+      {{ dict(w=384, h=240, mid_x=192, mid_y=120, icon=55, label=15, value=18, title_x=95) }}
     {% else %}
-      {{ dict(w=296, h=128, icon=45, val=15, label=13, title_x=43, mid_x=148, mid_y=64) }}
+      {{ dict(w=296, h=128, mid_x=148, mid_y=64, icon=45, label=13, value=15, title_x=43) }}
     {% endif %}
 
 trigger:
@@ -195,14 +218,12 @@ action:
       ttl: !input ttl
       payload:
 
-        # Titel
         - type: text
           value: !input display_title
           x: "{{ layout.title_x }}"
           y: 5
           size: "{{ layout.label }}"
 
-        # Trennlinien
         - type: line
           x_start: "{{ layout.mid_x }}"
           y_start: 15
@@ -217,77 +238,29 @@ action:
           y_end: "{{ layout.mid_y }}"
           color: !input divider_color
 
-        # -------- Q1 --------
-        - type: icon
-          value: !input sensor_1_icon
-          x: 5
-          y: 20
-          size: "{{ layout.icon }}"
-          color: "{{ alert_col if states(s1)|float(0) < threshold else normal_col }}"
         - type: text
-          value: !input sensor_1_label
-          x: "{{ layout.icon + 10 }}"
-          y: 30
-          size: "{{ layout.label }}"
-        - type: text
-          value: "{{ states(s1)|float|round(1) }} {{ u1 }}"
-          x: "{{ layout.icon + 10 }}"
-          y: 50
-          size: "{{ layout.val }}"
+          value: "{{ states(s1) }} {{ u1 }}"
+          x: 10
+          y: 40
+          size: "{{ layout.value }}"
 
-        # -------- Q2 --------
-        - type: icon
-          value: !input sensor_2_icon
-          x: "{{ layout.mid_x + 5 }}"
-          y: 20
-          size: "{{ layout.icon }}"
-          color: "{{ alert_col if states(s2)|float(0) < threshold else normal_col }}"
         - type: text
-          value: !input sensor_2_label
-          x: "{{ layout.mid_x + layout.icon + 10 }}"
-          y: 30
-          size: "{{ layout.label }}"
-        - type: text
-          value: "{{ states(s2)|float|round(1) }} {{ u2 }}"
-          x: "{{ layout.mid_x + layout.icon + 10 }}"
-          y: 50
-          size: "{{ layout.val }}"
+          value: "{{ states(s2) }} {{ u2 }}"
+          x: "{{ layout.mid_x + 10 }}"
+          y: 40
+          size: "{{ layout.value }}"
 
-        # -------- Q3 --------
-        - type: icon
-          value: !input sensor_3_icon
-          x: 5
-          y: "{{ layout.mid_y + 10 }}"
-          size: "{{ layout.icon }}"
-          color: "{{ alert_col if states(s3)|float(0) < threshold else normal_col }}"
         - type: text
-          value: !input sensor_3_label
-          x: "{{ layout.icon + 10 }}"
-          y: "{{ layout.mid_y + 20 }}"
-          size: "{{ layout.label }}"
-        - type: text
-          value: "{{ states(s3)|float|round(1) }} {{ u3 }}"
-          x: "{{ layout.icon + 10 }}"
-          y: "{{ layout.mid_y + 40 }}"
-          size: "{{ layout.val }}"
+          value: "{{ states(s3) }} {{ u3 }}"
+          x: 10
+          y: "{{ layout.mid_y + 30 }}"
+          size: "{{ layout.value }}"
 
-        # -------- Q4 --------
-        - type: icon
-          value: !input sensor_4_icon
-          x: "{{ layout.mid_x + 5 }}"
-          y: "{{ layout.mid_y + 10 }}"
-          size: "{{ layout.icon }}"
-          color: "{{ alert_col if states(s4)|float(0) < threshold else normal_col }}"
         - type: text
-          value: !input sensor_4_label
-          x: "{{ layout.mid_x + layout.icon + 10 }}"
-          y: "{{ layout.mid_y + 20 }}"
-          size: "{{ layout.label }}"
-        - type: text
-          value: "{{ states(s4)|float|round(2) }} {{ u4 }}"
-          x: "{{ layout.mid_x + layout.icon + 10 }}"
-          y: "{{ layout.mid_y + 40 }}"
-          size: "{{ layout.val }}"
+          value: "{{ states(s4) }} {{ u4 }}"
+          x: "{{ layout.mid_x + 10 }}"
+          y: "{{ layout.mid_y + 30 }}"
+          size: "{{ layout.value }}"
 
     target:
       device_id: !input epaper_device
