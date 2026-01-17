@@ -1,5 +1,5 @@
 blueprint:
-  name: E-Paper Display - 4-Quadranten-Layout (v1.2.0)
+  name: E-Paper Display - 4-Quadranten-Layout (v1.2.1)
   description: >
     Zeigt vier Sensoren in einem 4-Quadranten-Layout auf einem E-Paper Display an.
     Jeder Sensor kann eine eigene Einheit haben (z.B. °C, bar, %).
@@ -12,6 +12,7 @@ blueprint:
   input:
     epaper_device:
       name: E-Paper Display
+      description: Zielgerät
       selector:
         device:
           integration: open_epaper_link
@@ -32,73 +33,93 @@ blueprint:
           step: 60
           unit_of_measurement: "s"
 
-    # ---------------- SENSOR 1 ----------------
+    # -------- SENSOR 1 --------
     sensor_1:
       name: Sensor 1 (oben links)
       selector:
         entity:
           domain: sensor
     sensor_1_label:
+      name: Beschriftung Sensor 1
       default: "Sensor 1"
-      selector: { text: }
+      selector:
+        text:
     sensor_1_icon:
-      default: mdi:sprout
-      selector: { icon: }
+      name: Icon Sensor 1
+      default: mdi:thermometer
+      selector:
+        icon:
     sensor_1_unit:
       name: Einheit Sensor 1
       default: "°C"
-      selector: { text: }
+      selector:
+        text:
 
-    # ---------------- SENSOR 2 ----------------
+    # -------- SENSOR 2 --------
     sensor_2:
       name: Sensor 2 (oben rechts)
       selector:
         entity:
           domain: sensor
     sensor_2_label:
+      name: Beschriftung Sensor 2
       default: "Sensor 2"
-      selector: { text: }
+      selector:
+        text:
     sensor_2_icon:
-      default: mdi:sprout
-      selector: { icon: }
+      name: Icon Sensor 2
+      default: mdi:thermometer
+      selector:
+        icon:
     sensor_2_unit:
       name: Einheit Sensor 2
       default: "°C"
-      selector: { text: }
+      selector:
+        text:
 
-    # ---------------- SENSOR 3 ----------------
+    # -------- SENSOR 3 --------
     sensor_3:
       name: Sensor 3 (unten links)
       selector:
         entity:
           domain: sensor
     sensor_3_label:
+      name: Beschriftung Sensor 3
       default: "Sensor 3"
-      selector: { text: }
+      selector:
+        text:
     sensor_3_icon:
-      default: mdi:sprout
-      selector: { icon: }
+      name: Icon Sensor 3
+      default: mdi:thermometer
+      selector:
+        icon:
     sensor_3_unit:
       name: Einheit Sensor 3
       default: "°C"
-      selector: { text: }
+      selector:
+        text:
 
-    # ---------------- SENSOR 4 ----------------
+    # -------- SENSOR 4 --------
     sensor_4:
       name: Sensor 4 (unten rechts)
       selector:
         entity:
           domain: sensor
     sensor_4_label:
-      default: "Sensor 4"
-      selector: { text: }
+      name: Beschriftung Sensor 4
+      default: "Druck"
+      selector:
+        text:
     sensor_4_icon:
-      default: mdi:sprout
-      selector: { icon: }
+      name: Icon Sensor 4
+      default: mdi:car-brake-low-pressure
+      selector:
+        icon:
     sensor_4_unit:
       name: Einheit Sensor 4
       default: "bar"
-      selector: { text: }
+      selector:
+        text:
 
     threshold_low:
       name: Unterer Schwellenwert
@@ -109,22 +130,34 @@ blueprint:
           max: 100
 
     normal_color:
+      name: Normale Farbe
       default: black
       selector:
         select:
-          options: [black, red, white]
+          options:
+            - black
+            - red
+            - white
 
     alert_color:
+      name: Alarm Farbe
       default: red
       selector:
         select:
-          options: [red, black, white]
+          options:
+            - red
+            - black
+            - white
 
     divider_color:
+      name: Trennlinien Farbe
       default: red
       selector:
         select:
-          options: [red, black, white]
+          options:
+            - red
+            - black
+            - white
 
 variables:
   s1: !input sensor_1
@@ -148,7 +181,7 @@ trigger:
       - !input sensor_4
 
 action:
-  - action: open_epaper_link.drawcustom
+  - service: open_epaper_link.drawcustom
     data:
       rotate: 0
       dither: "0"
@@ -157,7 +190,6 @@ action:
       ttl: !input ttl
       payload:
 
-        # Titel
         - type: text
           value: !input display_title
           x: 43
@@ -165,7 +197,6 @@ action:
           size: 14
           color: !input normal_color
 
-        # Trennlinien
         - type: line
           x_start: 148
           y_start: 20
@@ -179,101 +210,83 @@ action:
           y_end: 76
           color: !input divider_color
 
-        # -------- Quadrant 1 --------
+        # Q1
         - type: icon
           value: !input sensor_1_icon
           x: 5
           y: 20
           size: 45
-          color: >-
-            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
-
+          color: "{{ alert_col if states(s1)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_1_label
           x: 50
           y: 30
           size: 13
-          color: !input normal_color
-
         - type: text
-          value: "{{ states(s1) | float | round(1) }} {{ u1 }}"
+          value: "{{ states(s1)|float|round(1) }} {{ u1 }}"
           x: 50
           y: 50
           size: 15
-          color: >-
-            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+          color: "{{ alert_col if states(s1)|float(0) < threshold else normal_col }}"
 
-        # -------- Quadrant 2 --------
+        # Q2
         - type: icon
           value: !input sensor_2_icon
           x: 155
           y: 20
           size: 45
-          color: >-
-            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
-
+          color: "{{ alert_col if states(s2)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_2_label
           x: 200
           y: 30
           size: 13
-          color: !input normal_color
-
         - type: text
-          value: "{{ states(s2) | float | round(1) }} {{ u2 }}"
+          value: "{{ states(s2)|float|round(1) }} {{ u2 }}"
           x: 200
           y: 50
           size: 15
-          color: >-
-            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+          color: "{{ alert_col if states(s2)|float(0) < threshold else normal_col }}"
 
-        # -------- Quadrant 3 --------
+        # Q3
         - type: icon
           value: !input sensor_3_icon
           x: 5
           y: 85
           size: 45
-          color: >-
-            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
-
+          color: "{{ alert_col if states(s3)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_3_label
           x: 50
           y: 95
           size: 13
-          color: !input normal_color
-
         - type: text
-          value: "{{ states(s3) | float | round(1) }} {{ u3 }}"
+          value: "{{ states(s3)|float|round(1) }} {{ u3 }}"
           x: 50
           y: 115
           size: 15
-          color: >-
-            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+          color: "{{ alert_col if states(s3)|float(0) < threshold else normal_col }}"
 
-        # -------- Quadrant 4 --------
+        # Q4
         - type: icon
           value: !input sensor_4_icon
           x: 155
           y: 85
           size: 45
-          color: >-
-            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
-
+          color: "{{ alert_col if states(s4)|float(0) < threshold else normal_col }}"
         - type: text
           value: !input sensor_4_label
           x: 200
           y: 95
           size: 13
-          color: !input normal_color
-
         - type: text
-          value: "{{ states(s4) | float | round(2) }} {{ u4 }}"
+          value: "{{ states(s4)|float|round(2) }} {{ u4 }}"
           x: 200
           y: 115
           size: 15
-          color: >-
-            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+          color: "{{ alert_col if states(s4)|float(0) < threshold else normal_col }}"
 
     target:
       device_id: !input epaper_device
+
+mode: single
