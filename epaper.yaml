@@ -150,9 +150,14 @@ trigger:
 action:
   - action: open_epaper_link.drawcustom
     data:
+      rotate: 0
+      dither: "0"
+      dry-run: false
       background: white
       ttl: !input ttl
       payload:
+
+        # Titel
         - type: text
           value: !input display_title
           x: 43
@@ -160,6 +165,7 @@ action:
           size: 14
           color: !input normal_color
 
+        # Trennlinien
         - type: line
           x_start: 148
           y_start: 20
@@ -173,35 +179,101 @@ action:
           y_end: 76
           color: !input divider_color
 
-        # Q1
+        # -------- Quadrant 1 --------
+        - type: icon
+          value: !input sensor_1_icon
+          x: 5
+          y: 20
+          size: 45
+          color: >-
+            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
+        - type: text
+          value: !input sensor_1_label
+          x: 50
+          y: 30
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s1) | float | round(1) }} {{ u1 }}"
           x: 50
           y: 50
           size: 15
+          color: >-
+            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # Q2
+        # -------- Quadrant 2 --------
+        - type: icon
+          value: !input sensor_2_icon
+          x: 155
+          y: 20
+          size: 45
+          color: >-
+            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
+        - type: text
+          value: !input sensor_2_label
+          x: 200
+          y: 30
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s2) | float | round(1) }} {{ u2 }}"
           x: 200
           y: 50
           size: 15
+          color: >-
+            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # Q3
+        # -------- Quadrant 3 --------
+        - type: icon
+          value: !input sensor_3_icon
+          x: 5
+          y: 85
+          size: 45
+          color: >-
+            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
+        - type: text
+          value: !input sensor_3_label
+          x: 50
+          y: 95
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s3) | float | round(1) }} {{ u3 }}"
           x: 50
           y: 115
           size: 15
+          color: >-
+            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # Q4
+        # -------- Quadrant 4 --------
+        - type: icon
+          value: !input sensor_4_icon
+          x: 155
+          y: 85
+          size: 45
+          color: >-
+            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
+        - type: text
+          value: !input sensor_4_label
+          x: 200
+          y: 95
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s4) | float | round(2) }} {{ u4 }}"
           x: 200
           y: 115
           size: 15
+          color: >-
+            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
     target:
       device_id: !input epaper_device
-
-mode: single
