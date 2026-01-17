@@ -1,179 +1,9 @@
-blueprint:
-  name: E-Paper Display – 4-Quadranten (Auto Scale) v1.3.0
-  description: >
-    Skalierbares 4-Quadranten-Layout für E-Paper Displays (2.66", 2.9", 3.5").
-    Mit Icons, Labels und automatischer Positionsberechnung.
-  domain: automation
-  author: meddatzk + ChatGPT
-  source_url: https://github.com/meddatzk/epaper-4quadrant-blueprint
-  homeassistant:
-    min_version: 2023.8.0
-
-input:
-  epaper_device:
-    name: E-Paper Display
-    selector:
-      device:
-        integration: open_epaper_link
-
-  display_type:
-    name: Displaygröße
-    default: "2.9"
-    selector:
-      select:
-        options:
-          - label: "2.66 Zoll (296x152)"
-            value: "2.66"
-          - label: "2.9 Zoll (296x128)"
-            value: "2.9"
-          - label: "3.5 Zoll (384x184)"
-            value: "3.5"
-
-  display_title:
-    name: Display Titel
-    default: "Sensor Übersicht"
-    selector: { text: }
-
-  ttl:
-    name: Time to Live (Sekunden)
-    default: 600
-    selector:
-      number:
-        min: 60
-        max: 3600
-        step: 60
-        unit_of_measurement: "s"
-
-  # -------- SENSOR 1 --------
-  sensor_1:
-    name: Sensor 1 (oben links)
-    selector:
-      entity:
-        domain: sensor
-  sensor_1_label:
-    default: "Sensor 1"
-    selector: { text: }
-  sensor_1_icon:
-    default: thermometer
-    selector: { icon: }
-  sensor_1_unit:
-    default: "°C"
-    selector: { text: }
-
-  # -------- SENSOR 2 --------
-  sensor_2:
-    name: Sensor 2 (oben rechts)
-    selector:
-      entity:
-        domain: sensor
-  sensor_2_label:
-    default: "Sensor 2"
-    selector: { text: }
-  sensor_2_icon:
-    default: water-percent
-    selector: { icon: }
-  sensor_2_unit:
-    default: "%"
-    selector: { text: }
-
-  # -------- SENSOR 3 --------
-  sensor_3:
-    name: Sensor 3 (unten links)
-    selector:
-      entity:
-        domain: sensor
-  sensor_3_label:
-    default: "Sensor 3"
-    selector: { text: }
-  sensor_3_icon:
-    default: gauge
-    selector: { icon: }
-  sensor_3_unit:
-    default: "bar"
-    selector: { text: }
-
-  # -------- SENSOR 4 --------
-  sensor_4:
-    name: Sensor 4 (unten rechts)
-    selector:
-      entity:
-        domain: sensor
-  sensor_4_label:
-    default: "Sensor 4"
-    selector: { text: }
-  sensor_4_icon:
-    default: flash
-    selector: { icon: }
-  sensor_4_unit:
-    default: "W"
-    selector: { text: }
-
-  normal_color:
-    default: black
-    selector:
-      select:
-        options: [black, red, white]
-
-  divider_color:
-    default: red
-    selector:
-      select:
-        options: [red, black, white]
-
-variables:
-  s1: !input sensor_1
-  s2: !input sensor_2
-  s3: !input sensor_3
-  s4: !input sensor_4
-
-  u1: !input sensor_1_unit
-  u2: !input sensor_2_unit
-  u3: !input sensor_3_unit
-  u4: !input sensor_4_unit
-
-  l1: !input sensor_1_label
-  l2: !input sensor_2_label
-  l3: !input sensor_3_label
-  l4: !input sensor_4_label
-
-  i1: !input sensor_1_icon
-  i2: !input sensor_2_icon
-  i3: !input sensor_3_icon
-  i4: !input sensor_4_icon
-
-  display: !input display_type
-
-  w: >
-    {% if display == '3.5' %}384{% else %}296{% endif %}
-  h: >
-    {% if display == '2.66' %}152
-    {% elif display == '3.5' %}184
-    {% else %}128{% endif %}
-
-  cx: "{{ (w / 2) | int }}"
-  cy: "{{ (h / 2) | int }}"
-
-  ql: "{{ (w * 0.25) | int }}"
-  qr: "{{ (w * 0.75) | int }}"
-  qt: "{{ (h * 0.28) | int }}"
-  qb: "{{ (h * 0.72) | int }}"
-
-  title_size: "{{ (h / 9) | int }}"
-  label_size: "{{ (h / 11) | int }}"
-  value_size: "{{ (h / 7) | int }}"
-  icon_size: "{{ (h / 10) | int }}"
-
-trigger:
-  - platform: state
-    entity_id:
-      - !input sensor_1
-      - !input sensor_2
-      - !input sensor_3
-      - !input sensor_4
-
 action:
   - action: open_epaper_link.drawcustom
     data:
+      rotate: 0
+      dither: "0"
+      dry-run: false
       background: white
       ttl: !input ttl
       payload:
@@ -181,94 +11,120 @@ action:
         # Titel
         - type: text
           value: !input display_title
-          x: "{{ cx - (w * 0.18) | int }}"
-          y: 4
-          size: "{{ title_size }}"
+          x: 43
+          y: 5
+          size: 14
           color: !input normal_color
 
         # Trennlinien
         - type: line
-          x_start: "{{ cx }}"
-          y_start: 18
-          x_end: "{{ cx }}"
-          y_end: "{{ h - 8 }}"
+          x_start: 148
+          y_start: 20
+          x_end: 148
+          y_end: 142
           color: !input divider_color
         - type: line
-          x_start: 8
-          y_start: "{{ cy }}"
-          x_end: "{{ w - 8 }}"
-          y_end: "{{ cy }}"
+          x_start: 10
+          y_start: 76
+          x_end: 286
+          y_end: 76
           color: !input divider_color
 
-        # ---------- Q1 ----------
+        # -------- Quadrant 1 --------
         - type: icon
-          value: "{{ i1 }}"
-          x: "{{ ql }}"
-          y: "{{ qt - 18 }}"
-          size: "{{ icon_size }}"
+          value: !input sensor_1_icon
+          x: 5
+          y: 20
+          size: 45
+          color: >-
+            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
         - type: text
-          value: "{{ l1 }}"
-          x: "{{ ql }}"
-          y: "{{ qt }}"
-          size: "{{ label_size }}"
+          value: !input sensor_1_label
+          x: 50
+          y: 30
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s1) | float | round(1) }} {{ u1 }}"
-          x: "{{ ql }}"
-          y: "{{ qt + 18 }}"
-          size: "{{ value_size }}"
+          x: 50
+          y: 50
+          size: 15
+          color: >-
+            {% if states(s1) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # ---------- Q2 ----------
+        # -------- Quadrant 2 --------
         - type: icon
-          value: "{{ i2 }}"
-          x: "{{ qr }}"
-          y: "{{ qt - 18 }}"
-          size: "{{ icon_size }}"
+          value: !input sensor_2_icon
+          x: 155
+          y: 20
+          size: 45
+          color: >-
+            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
         - type: text
-          value: "{{ l2 }}"
-          x: "{{ qr }}"
-          y: "{{ qt }}"
-          size: "{{ label_size }}"
+          value: !input sensor_2_label
+          x: 200
+          y: 30
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s2) | float | round(1) }} {{ u2 }}"
-          x: "{{ qr }}"
-          y: "{{ qt + 18 }}"
-          size: "{{ value_size }}"
+          x: 200
+          y: 50
+          size: 15
+          color: >-
+            {% if states(s2) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # ---------- Q3 ----------
+        # -------- Quadrant 3 --------
         - type: icon
-          value: "{{ i3 }}"
-          x: "{{ ql }}"
-          y: "{{ qb - 18 }}"
-          size: "{{ icon_size }}"
+          value: !input sensor_3_icon
+          x: 5
+          y: 85
+          size: 45
+          color: >-
+            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
         - type: text
-          value: "{{ l3 }}"
-          x: "{{ ql }}"
-          y: "{{ qb }}"
-          size: "{{ label_size }}"
+          value: !input sensor_3_label
+          x: 50
+          y: 95
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s3) | float | round(1) }} {{ u3 }}"
-          x: "{{ ql }}"
-          y: "{{ qb + 18 }}"
-          size: "{{ value_size }}"
+          x: 50
+          y: 115
+          size: 15
+          color: >-
+            {% if states(s3) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
-        # ---------- Q4 ----------
+        # -------- Quadrant 4 --------
         - type: icon
-          value: "{{ i4 }}"
-          x: "{{ qr }}"
-          y: "{{ qb - 18 }}"
-          size: "{{ icon_size }}"
+          value: !input sensor_4_icon
+          x: 155
+          y: 85
+          size: 45
+          color: >-
+            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
+
         - type: text
-          value: "{{ l4 }}"
-          x: "{{ qr }}"
-          y: "{{ qb }}"
-          size: "{{ label_size }}"
+          value: !input sensor_4_label
+          x: 200
+          y: 95
+          size: 13
+          color: !input normal_color
+
         - type: text
           value: "{{ states(s4) | float | round(2) }} {{ u4 }}"
-          x: "{{ qr }}"
-          y: "{{ qb + 18 }}"
-          size: "{{ value_size }}"
+          x: 200
+          y: 115
+          size: 15
+          color: >-
+            {% if states(s4) | float(0) < threshold %}{{ alert_col }}{% else %}{{ normal_col }}{% endif %}
 
     target:
       device_id: !input epaper_device
-
-mode: single
