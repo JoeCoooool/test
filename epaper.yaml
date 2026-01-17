@@ -8,27 +8,6 @@ blueprint:
   homeassistant:
     min_version: 2023.8.0
 
-  input:
-    epaper_device:
-      name: E-Paper Display
-      selector:
-        device:
-          integration: open_epaper_link
-
-    display_size:
-      name: Displaygröße
-      description: Welche Displaygröße wird verwendet?
-      default: "2.9"
-      selector:
-        select:
-          options:
-            - label: 2,66 Zoll
-              value: "2.66"
-            - label: 2,9 Zoll
-              value: "2.9"
-            - label: 3,5 Zoll
-              value: "3.5"
-
 
     display_title:
       name: Display Titel
@@ -45,6 +24,35 @@ blueprint:
           max: 3600
           step: 60
           unit_of_measurement: "s"
+
+input:
+  display_size:
+    name: Displaygröße
+    description: Welche Displaygröße wird verwendet?
+    default: "2.9"
+    selector:
+      select:
+        options:
+          - label: 2,66 Zoll
+            value: "2.66"
+          - label: 2,9 Zoll
+            value: "2.9"
+          - label: 3,5 Zoll
+            value: "3.5"
+
+  display_title:
+    name: Display Titel
+    default: "Sensor Übersicht"
+    selector:
+      text:
+
+  epaper_device:
+    name: E-Paper Display
+    description: Zielgerät
+    selector:
+      device:
+        integration: open_epaper_link
+
 
     # ---------- SENSOR 1 ----------
     sensor_1:
